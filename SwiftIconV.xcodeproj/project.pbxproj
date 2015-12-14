@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		558844D41C1F3F8000D8ED57 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 558844D31C1F3F8000D8ED57 /* libiconv.tbd */; };
 		55B1E5201C1EBB7400D5988F /* SwiftIconV.h in Headers */ = {isa = PBXBuildFile; fileRef = 55B1E51F1C1EBB7400D5988F /* SwiftIconV.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		55B1E5271C1EBB7400D5988F /* SwiftIconV.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55B1E51C1C1EBB7400D5988F /* SwiftIconV.framework */; };
 		55B1E52C1C1EBB7400D5988F /* SwiftIconVTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B1E52B1C1EBB7400D5988F /* SwiftIconVTests.swift */; };
+		55B1E5371C1EBC6A00D5988F /* IconV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B1E5361C1EBC6A00D5988F /* IconV.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,12 +25,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		558844D31C1F3F8000D8ED57 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		55B1E51C1C1EBB7400D5988F /* SwiftIconV.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftIconV.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B1E51F1C1EBB7400D5988F /* SwiftIconV.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftIconV.h; sourceTree = "<group>"; };
 		55B1E5211C1EBB7400D5988F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		55B1E5261C1EBB7400D5988F /* SwiftIconVTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftIconVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B1E52B1C1EBB7400D5988F /* SwiftIconVTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftIconVTests.swift; sourceTree = "<group>"; };
 		55B1E52D1C1EBB7400D5988F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		55B1E5361C1EBC6A00D5988F /* IconV.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconV.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				558844D41C1F3F8000D8ED57 /* libiconv.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,11 +55,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		558844D21C1F3F6200D8ED57 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				558844D31C1F3F8000D8ED57 /* libiconv.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		55B1E5121C1EBB7400D5988F = {
 			isa = PBXGroup;
 			children = (
 				55B1E51E1C1EBB7400D5988F /* SwiftIconV */,
 				55B1E52A1C1EBB7400D5988F /* SwiftIconVTests */,
+				558844D21C1F3F6200D8ED57 /* Frameworks */,
 				55B1E51D1C1EBB7400D5988F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -73,6 +87,7 @@
 			children = (
 				55B1E51F1C1EBB7400D5988F /* SwiftIconV.h */,
 				55B1E5211C1EBB7400D5988F /* Info.plist */,
+				55B1E5361C1EBC6A00D5988F /* IconV.swift */,
 			);
 			path = SwiftIconV;
 			sourceTree = "<group>";
@@ -194,6 +209,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55B1E5371C1EBC6A00D5988F /* IconV.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -305,6 +321,7 @@
 		55B1E5311C1EBB7400D5988F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -317,12 +334,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.maddthesane.SwiftIconV;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		55B1E5321C1EBB7400D5988F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -379,6 +398,7 @@
 				55B1E5321C1EBB7400D5988F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		55B1E5331C1EBB7400D5988F /* Build configuration list for PBXNativeTarget "SwiftIconVTests" */ = {
 			isa = XCConfigurationList;
@@ -387,6 +407,7 @@
 				55B1E5351C1EBB7400D5988F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
