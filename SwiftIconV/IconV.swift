@@ -57,7 +57,7 @@ final public class IconV {
 	public enum EncodingErrors: ErrorType {
 		case BufferTooSmall
 		case PassedNull
-		case InvalidEncoding
+		case InvalidEncodingName
 		case InvalidMultibyteSequence
 		case IncompleteMultibyteSequence
 		case UnknownError(Int32)
@@ -156,9 +156,23 @@ final public class IconV {
 }
 
 extension IconV {
-	public class func convertCString(cstr: UnsafePointer<Int8>, fromEncodingNamed encName: String) throws -> String {
+	@warn_unused_result public class func convertCString(cstr: UnsafePointer<Int8>, length: Int? = nil, fromEncodingNamed encName: String) throws -> String {
+		if cstr == nil {
+			throw EncodingErrors.PassedNull
+		}
 		
+		guard let converter = IconV(fromEncoding: encName) else {
+			throw EncodingErrors.InvalidEncodingName
+		}
 		
-		return ""
+		let strLen = length ?? Int(strlen(cstr))
+		var tmpStrLen = strLen
+		var utf8Str = [Int8]()
+		utf8Str.reserveCapacity(strLen)
+		var cStrPtr = UnsafeMutablePointer<Int8>(cstr)
+		try converter.convert(inBuffer: &cStrPtr, inBytesCount: &tmpStrLen, outBuffer: &utf8Str, outBufferMax: Int.max)
+		utf8Str.append(0) //null terminator
+		
+		return String.fromCString(utf8Str)!
 	}
 }
