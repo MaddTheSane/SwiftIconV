@@ -7,7 +7,11 @@
 //
 
 import Swift
-import Darwin.POSIX.iconv
+#if os(OSX) || os(iOS) || os(tvOS) || os(watchOS)
+	import Darwin.POSIX.iconv
+#elseif os(Linux)
+	import SwiftGlibc.POSIX.iconv
+#endif
 
 /// Swift wrapper around the iconv library functions
 final public class IconV {
@@ -26,13 +30,9 @@ final public class IconV {
 	@warn_unused_result
 	public static func availableEncodings() -> [[String]] {
 		if IconV.encodings.count == 0 {
-			var encodingsPtr: UnsafeMutablePointer<[[String]]> = nil
-			
-			func hackyGetPtr(arr: UnsafeMutablePointer<[[String]]>) {
-				encodingsPtr = arr
-			}
-			
-			hackyGetPtr(&IconV.encodings)
+			let encodingsPtr = withUnsafeMutablePointer(&IconV.encodings, {
+				return $0
+			})
 			
 			iconvlist({ (namescount, names, data) -> Int32 in
 				var encNames = [String]()
@@ -56,7 +56,7 @@ final public class IconV {
 	/// The result is either a canonical encoding name, or name itself.
 	public class func canonicalizeEncoding(name: String) -> String {
 		let retName = iconv_canonicalize(name)
-		return String.fromCString(retName)!
+		return String.fromCString(retName) ?? name
 	}
 	
 	public enum EncodingErrors: ErrorType {
@@ -90,9 +90,10 @@ final public class IconV {
 	/// Converts a pointer to a byte array from the encoding `fromEncoding` to `toEncoding`
 	/// - parameter outBufferMax: the maximum size of the buffer to use. Default is `1024`. 
 	/// If passed `Int.max`, will attempt to convert the whole buffer without throwing `EncodingErrors.BufferTooSmall`.
-	/// - parameter inBuf: a pointer to the buffer of bytes to convert. On return, will point to
+	/// - parameter inBuf: A pointer to the buffer of bytes to convert. On return, will point to
+	/// where the encoding ended.
 	/// - parameter inBytes: the number of bytes in `inBuf`.
-	/// - parameter outBuf:
+	/// - parameter outBuf: The converted bytes, appending the array.
 	/// - returns: the number of non-reversible conversions performed.
 	/// - throws: an `EncodingErrors` on failure, including the buffer size request being too small.
 	///
@@ -174,7 +175,7 @@ extension IconV {
 	/// - throws: an `EncodingErrors` on failure.
 	///
 	/// Internally, this tells libiconv to convert the string to UTF-8, 
-	/// then initializes the Swift String struct from the result.
+	/// then initializes a Swift String from the result.
 	@warn_unused_result public class func convertCString(cstr: UnsafePointer<Int8>, length: Int? = nil, fromEncodingNamed encName: String) throws -> String {
 		if cstr == nil {
 			throw EncodingErrors.PassedNull
