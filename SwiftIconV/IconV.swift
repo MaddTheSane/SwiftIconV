@@ -10,7 +10,9 @@ import Swift
 #if os(OSX) || os(iOS) || os(tvOS) || os(watchOS)
 	import Darwin.POSIX.iconv
 #elseif os(Linux)
+	import Glibc
 	import SwiftGlibc.POSIX.iconv
+	import SwiftGlibc.C.errno
 #endif
 
 /// Swift wrapper around the iconv library functions
