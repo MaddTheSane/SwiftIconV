@@ -52,6 +52,44 @@ final public class IconV {
 		return encodings
 	}
 	
+	/// Is `true` if the encoding conversion is trivial.
+	public var trivial: Bool {
+		var toRet = Int32(0)
+		iconvctl(intIconv, ICONV_TRIVIALP, &toRet)
+		return toRet == 1
+	}
+	
+	public var transliterates: Bool {
+		get {
+			var toRet = Int32(0)
+			iconvctl(intIconv, ICONV_GET_TRANSLITERATE, &toRet)
+			return toRet == 1
+		}
+		set {
+			var toRet = Int32(0)
+			if newValue {
+				toRet = 1
+			}
+			iconvctl(intIconv, ICONV_SET_TRANSLITERATE, &toRet)
+		}
+	}
+
+	/// "illegal sequence discard and continue"
+	public var discardIllegalSequence: Bool {
+		get {
+			var toRet = Int32(0)
+			iconvctl(intIconv, ICONV_GET_DISCARD_ILSEQ, &toRet)
+			return toRet == 1
+		}
+		set {
+			var toRet = Int32(0)
+			if newValue {
+				toRet = 1
+			}
+			iconvctl(intIconv, ICONV_SET_DISCARD_ILSEQ, &toRet)
+		}
+	}
+
 	/// Canonicalize an encoding name.
 	/// The result is either a canonical encoding name, or name itself.
 	public class func canonicalizeEncoding(name: String) -> String {
@@ -170,7 +208,8 @@ final public class IconV {
 extension IconV {
 	/// Converts a C string in the specified encoding to a Swift String.
 	/// - parameter cstr: pointer to the C string to convert
-	/// - parameter length: the length, in bytes, of `cstr`. If `nil`, uses `strlen` to get the length
+	/// - parameter length: the length, in bytes, of `cstr`. If `nil`, uses `strlen` to get the length.
+	/// Default value is `nil`.
 	/// - parameter encName: the name of the encoding that the c string is in.
 	/// - throws: an `EncodingErrors` on failure.
 	///
