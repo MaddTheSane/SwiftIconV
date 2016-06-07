@@ -38,6 +38,7 @@ final public class IconV {
 			
 			iconvlist({ (namescount, names, data) -> Int32 in
 				var encNames = [String]()
+				encNames.reserveCapacity(Int(namescount))
 				for i in 0..<Int(namescount) {
 					guard let strName = String.fromCString(names[i]) else {
 						return -1
@@ -68,9 +69,11 @@ final public class IconV {
 			return toRet == 1
 		}
 		set {
-			var toRet = Int32(0)
+			var toRet: Int32
 			if newValue {
 				toRet = 1
+			} else {
+				toRet = 0
 			}
 			iconvctl(intIconv, ICONV_SET_TRANSLITERATE, &toRet)
 		}
@@ -84,9 +87,11 @@ final public class IconV {
 			return toRet == 1
 		}
 		set {
-			var toRet = Int32(0)
+			var toRet:Int32
 			if newValue {
 				toRet = 1
+			} else {
+				toRet = 0
 			}
 			iconvctl(intIconv, ICONV_SET_DISCARD_ILSEQ, &toRet)
 		}
@@ -232,8 +237,14 @@ extension IconV {
 		utf8Str.reserveCapacity(strLen)
 		var cStrPtr = UnsafeMutablePointer<Int8>(cstr)
 		try converter.convert(inBuffer: &cStrPtr, inBytesCount: &tmpStrLen, outBuffer: &utf8Str, outBufferMax: Int.max)
-		utf8Str.append(0) //null terminator
+		let preUTF8 = utf8Str.map({return UInt8(bitPattern: $0)})
+		var preScalar = [UnicodeScalar]()
+		preScalar.reserveCapacity(preUTF8.count)
+
+		transcode(UTF8.self, UTF32.self, preUTF8.generate(), { preScalar.append(UnicodeScalar($0)) }, stopOnError: false)
+		var scalar = String.UnicodeScalarView()
+		scalar.appendContentsOf(preScalar)
 		
-		return String.fromCString(utf8Str)!
+		return String(scalar)
 	}
 }

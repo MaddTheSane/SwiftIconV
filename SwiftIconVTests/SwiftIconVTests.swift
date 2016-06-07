@@ -90,4 +90,26 @@ class SwiftIconVTests: XCTestCase {
 			}
 		}
 	}
+	
+	func testEncodingsList() {
+		print(IconV.availableEncodings())
+	}
+	
+	func testInvalidEncoding() {
+		let macOSRoman: [Int8] = [-80, 0]
+		do {
+			let maybeInfinity = try IconV.convertCString(macOSRoman, fromEncodingNamed: "ASCII")
+			XCTFail("Got \(maybeInfinity), expected throw")
+		} catch let error as IconV.EncodingErrors {
+			switch error {
+			case .InvalidMultibyteSequence:
+				break
+				
+			default:
+				XCTFail("Got unexpected error \"\(error)\"")
+			}
+		} catch {
+			XCTFail("Got unknown error \"\(error)\"")
+		}
+	}
 }
