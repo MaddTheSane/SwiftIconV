@@ -12,6 +12,11 @@
 		55B1E5271C1EBB7400D5988F /* SwiftIconV.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55B1E51C1C1EBB7400D5988F /* SwiftIconV.framework */; };
 		55B1E52C1C1EBB7400D5988F /* SwiftIconVTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B1E52B1C1EBB7400D5988F /* SwiftIconVTests.swift */; };
 		55B1E5371C1EBC6A00D5988F /* IconV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B1E5361C1EBC6A00D5988F /* IconV.swift */; };
+		55B713041D074D2D00F2EA1F /* Odysseus Elytis.txt in Resources */ = {isa = PBXBuildFile; fileRef = 55B713031D074D2D00F2EA1F /* Odysseus Elytis.txt */; };
+		55B713071D074EA900F2EA1F /* Bronze Horseman.txt in Resources */ = {isa = PBXBuildFile; fileRef = 55B713061D074EA900F2EA1F /* Bronze Horseman.txt */; };
+		55B713091D074FC200F2EA1F /* Japanese Hiragana.txt in Resources */ = {isa = PBXBuildFile; fileRef = 55B713081D074FC200F2EA1F /* Japanese Hiragana.txt */; };
+		55B7130B1D07507E00F2EA1F /* Wolfram von Eschenbach.txt in Resources */ = {isa = PBXBuildFile; fileRef = 55B7130A1D07507E00F2EA1F /* Wolfram von Eschenbach.txt */; };
+		55B7130D1D0751B400F2EA1F /* SamplerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B7130C1D0751B400F2EA1F /* SamplerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +38,11 @@
 		55B1E52B1C1EBB7400D5988F /* SwiftIconVTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftIconVTests.swift; sourceTree = "<group>"; };
 		55B1E52D1C1EBB7400D5988F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		55B1E5361C1EBC6A00D5988F /* IconV.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IconV.swift; sourceTree = "<group>"; };
+		55B713031D074D2D00F2EA1F /* Odysseus Elytis.txt */ = {isa = PBXFileReference; fileEncoding = 2147484167; lastKnownFileType = text; path = "Odysseus Elytis.txt"; sourceTree = "<group>"; };
+		55B713061D074EA900F2EA1F /* Bronze Horseman.txt */ = {isa = PBXFileReference; fileEncoding = 2147484165; lastKnownFileType = text; path = "Bronze Horseman.txt"; sourceTree = "<group>"; };
+		55B713081D074FC200F2EA1F /* Japanese Hiragana.txt */ = {isa = PBXFileReference; fileEncoding = 2147486209; lastKnownFileType = text; path = "Japanese Hiragana.txt"; sourceTree = "<group>"; };
+		55B7130A1D07507E00F2EA1F /* Wolfram von Eschenbach.txt */ = {isa = PBXFileReference; fileEncoding = 5; lastKnownFileType = text; path = "Wolfram von Eschenbach.txt"; sourceTree = "<group>"; };
+		55B7130C1D0751B400F2EA1F /* SamplerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SamplerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,9 +106,22 @@
 			isa = PBXGroup;
 			children = (
 				55B1E52B1C1EBB7400D5988F /* SwiftIconVTests.swift */,
+				55B7130C1D0751B400F2EA1F /* SamplerTests.swift */,
 				55B1E52D1C1EBB7400D5988F /* Info.plist */,
+				55B713051D074D7B00F2EA1F /* UTF-8 SAMPLER */,
 			);
 			path = SwiftIconVTests;
+			sourceTree = "<group>";
+		};
+		55B713051D074D7B00F2EA1F /* UTF-8 SAMPLER */ = {
+			isa = PBXGroup;
+			children = (
+				55B713031D074D2D00F2EA1F /* Odysseus Elytis.txt */,
+				55B713061D074EA900F2EA1F /* Bronze Horseman.txt */,
+				55B713081D074FC200F2EA1F /* Japanese Hiragana.txt */,
+				55B7130A1D07507E00F2EA1F /* Wolfram von Eschenbach.txt */,
+			);
+			path = "UTF-8 SAMPLER";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -199,6 +222,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55B713091D074FC200F2EA1F /* Japanese Hiragana.txt in Resources */,
+				55B7130B1D07507E00F2EA1F /* Wolfram von Eschenbach.txt in Resources */,
+				55B713071D074EA900F2EA1F /* Bronze Horseman.txt in Resources */,
+				55B713041D074D2D00F2EA1F /* Odysseus Elytis.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +244,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55B7130D1D0751B400F2EA1F /* SamplerTests.swift in Sources */,
 				55B1E52C1C1EBB7400D5988F /* SwiftIconVTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
