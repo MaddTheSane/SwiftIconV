@@ -227,7 +227,8 @@ extension IconV {
 			throw EncodingErrors.PassedNull
 		}
 		
-		guard let converter = IconV(fromEncoding: encName) else {
+		//Use "UTF-32LE" so we don't have to worry about the BOM
+		guard let converter = IconV(fromEncoding: encName, toEncoding: "UTF-32LE") else {
 			throw EncodingErrors.InvalidEncodingName
 		}
 		
@@ -237,11 +238,15 @@ extension IconV {
 		utf8Str.reserveCapacity(strLen)
 		var cStrPtr = UnsafeMutablePointer<Int8>(cstr)
 		try converter.convert(inBuffer: &cStrPtr, inBytesCount: &tmpStrLen, outBuffer: &utf8Str, outBufferMax: Int.max)
-		let preUTF8 = utf8Str.map({return UInt8(bitPattern: $0)})
-		var preScalar = [UnicodeScalar]()
-		preScalar.reserveCapacity(preUTF8.count)
-
-		transcode(UTF8.self, UTF32.self, preUTF8.generate(), { preScalar.append(UnicodeScalar($0)) }, stopOnError: false)
+		let preScalar: [UnicodeScalar] = {
+			// Nasty, dirty hack to convert to [UInt32]
+			let badPtr = UnsafeMutablePointer<Int8>(utf8Str)
+			let goodPtr = UnsafePointer<UInt32>(badPtr)
+			let betterPtr = UnsafeBufferPointer(start: goodPtr, count: utf8Str.count / 4)
+			
+			// Make sure the UTF-32 number is in the processor's endian.
+			return betterPtr.map({UnicodeScalar($0.littleEndian)})
+		}()
 		var scalar = String.UnicodeScalarView()
 		scalar.appendContentsOf(preScalar)
 		
