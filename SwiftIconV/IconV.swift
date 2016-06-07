@@ -124,6 +124,18 @@ final public class IconV {
 	/// - parameter toEncoding: The name of the encoding to convert to. Default is `"UTF-8"`
 	/// - returns: an IconV class, or `nil` if an encoding name is invalid.
 	public init?(fromEncoding: String, toEncoding: String = "UTF-8") {
+		for char in fromEncoding.characters {
+			if char == " " {
+				return nil
+			}
+		}
+		
+		for char in toEncoding.characters {
+			if char == " " {
+				return nil
+			}
+		}
+		
 		self.fromEncoding = fromEncoding
 		self.toEncoding = toEncoding
 		intIconv = iconv_open(toEncoding, fromEncoding)

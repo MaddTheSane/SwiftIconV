@@ -6,6 +6,7 @@
 //  Copyright © 2015 C.W. Betts. All rights reserved.
 //
 
+import Foundation
 import XCTest
 @testable import SwiftIconV
 
@@ -110,6 +111,16 @@ class SwiftIconVTests: XCTestCase {
 			}
 		} catch {
 			XCTFail("Got unknown error \"\(error)\"")
+		}
+	}
+	
+	func testInvalidEncodingNames() {
+		let invalids = ["ISO 8859-7", "Shift JIS"]
+		
+		for inv in invalids {
+			if IconV(fromEncoding: inv) != nil {
+				XCTFail("encoding \"\(inv)\" came back as valid!")
+			}
 		}
 	}
 }
