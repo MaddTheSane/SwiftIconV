@@ -102,13 +102,7 @@ class SwiftIconVTests: XCTestCase {
 			let maybeInfinity = try IconV.convertCString(macOSRoman, fromEncodingNamed: "ASCII")
 			XCTFail("Got \(maybeInfinity), expected throw")
 		} catch let error as IconV.EncodingErrors {
-			switch error {
-			case .InvalidMultibyteSequence:
-				break
-				
-			default:
-				XCTFail("Got unexpected error \"\(error)\"")
-			}
+			XCTAssertEqual(error, IconV.EncodingErrors.InvalidMultibyteSequence, "Got unexpected error \"\(error)\"")
 		} catch {
 			XCTFail("Got unknown error \"\(error)\"")
 		}

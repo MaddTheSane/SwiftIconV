@@ -98,14 +98,14 @@ final public class IconV {
 	}
 
 	/// Canonicalize an encoding name.
-	/// The result is either a canonical encoding name, or name itself.
+	/// The result is either a canonical encoding name, or `name` itself.
 	public class func canonicalizeEncoding(name: String) -> String {
 		let retName = iconv_canonicalize(name)
 		return String.fromCString(retName) ?? name
 	}
 	
 	public enum EncodingErrors: ErrorType {
-		/// The buffer is too small for
+		/// The buffer is too small
 		case BufferTooSmall
 		/// Conversion function was passed `nil`
 		case PassedNull
@@ -221,6 +221,39 @@ final public class IconV {
 	/// Resets the encoder to its default state
 	public func reset() {
 		iconv(intIconv, nil, nil, nil, nil)
+	}
+}
+
+extension IconV.EncodingErrors: Equatable {
+	
+}
+
+public func ==(lhs: IconV.EncodingErrors, rhs: IconV.EncodingErrors) -> Bool {
+	switch (lhs, rhs) {
+	case (.UnknownError(let lhsErr), .UnknownError(let rhsErr)):
+		if lhsErr == rhsErr {
+			return true
+		} else {
+			return false
+		}
+		
+	case (.BufferTooSmall, .BufferTooSmall):
+		return true
+		
+	case (.PassedNull, .PassedNull):
+		return true
+
+	case (.InvalidEncodingName, .InvalidEncodingName):
+		return true
+
+	case (.InvalidMultibyteSequence, .InvalidMultibyteSequence):
+		return true
+
+	case (.IncompleteMultibyteSequence, .IncompleteMultibyteSequence):
+		return true
+
+	default:
+		return false
 	}
 }
 
