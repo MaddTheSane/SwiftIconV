@@ -24,85 +24,6 @@ final public class IconV {
 	
 	/// The string encoding that `convert` converts from
 	public let fromEncoding: String
-
-	private static var encodings = [[String]]()
-	/// A list of all the available encodings.
-	/// They are grouped so that names that reference the same encoding are in the same array 
-	/// within the returned array.
-	@warn_unused_result
-	public static func availableEncodings() -> [[String]] {
-		if IconV.encodings.count == 0 {
-			let encodingsPtr = withUnsafeMutablePointer(&IconV.encodings, {
-				return $0
-			})
-			
-			iconvlist({ (namescount, names, data) -> Int32 in
-				var encNames = [String]()
-				encNames.reserveCapacity(Int(namescount))
-				for i in 0..<Int(namescount) {
-					guard let strName = String.fromCString(names[i]) else {
-						return -1
-					}
-					encNames.append(strName)
-				}
-				let encodings = UnsafeMutablePointer<[[String]]>(data)
-				encodings.memory.append(encNames)
-				
-				return 0
-				}, encodingsPtr)
-		}
-		
-		return encodings
-	}
-	
-	/// Is `true` if the encoding conversion is trivial.
-	public var trivial: Bool {
-		var toRet = Int32(0)
-		iconvctl(intIconv, ICONV_TRIVIALP, &toRet)
-		return toRet == 1
-	}
-	
-	public var transliterates: Bool {
-		get {
-			var toRet = Int32(0)
-			iconvctl(intIconv, ICONV_GET_TRANSLITERATE, &toRet)
-			return toRet == 1
-		}
-		set {
-			var toRet: Int32
-			if newValue {
-				toRet = 1
-			} else {
-				toRet = 0
-			}
-			iconvctl(intIconv, ICONV_SET_TRANSLITERATE, &toRet)
-		}
-	}
-
-	/// "illegal sequence discard and continue"
-	public var discardIllegalSequence: Bool {
-		get {
-			var toRet = Int32(0)
-			iconvctl(intIconv, ICONV_GET_DISCARD_ILSEQ, &toRet)
-			return toRet == 1
-		}
-		set {
-			var toRet:Int32
-			if newValue {
-				toRet = 1
-			} else {
-				toRet = 0
-			}
-			iconvctl(intIconv, ICONV_SET_DISCARD_ILSEQ, &toRet)
-		}
-	}
-
-	/// Canonicalize an encoding name.
-	/// The result is either a canonical encoding name, or `name` itself.
-	public class func canonicalizeEncoding(name: String) -> String {
-		let retName = iconv_canonicalize(name)
-		return String.fromCString(retName) ?? name
-	}
 	
 	public enum EncodingErrors: ErrorType {
 		/// The buffer is too small
@@ -224,6 +145,91 @@ final public class IconV {
 	}
 }
 
+#if os(OSX) || os(iOS) || os(tvOS) || os(watchOS)
+	
+	/// OS X-specific additions that may not be present on Linux.
+	extension IconV {
+		private static var encodings = [[String]]()
+		/// A list of all the available encodings.
+		/// They are grouped so that names that reference the same encoding are in the same array
+		/// within the returned array.
+		@warn_unused_result
+		public static func availableEncodings() -> [[String]] {
+			if IconV.encodings.count == 0 {
+				let encodingsPtr = withUnsafeMutablePointer(&IconV.encodings, {
+					return $0
+				})
+				
+				iconvlist({ (namescount, names, data) -> Int32 in
+					var encNames = [String]()
+					encNames.reserveCapacity(Int(namescount))
+					for i in 0..<Int(namescount) {
+						guard let strName = String.fromCString(names[i]) else {
+							return -1
+						}
+						encNames.append(strName)
+					}
+					let encodings = UnsafeMutablePointer<[[String]]>(data)
+					encodings.memory.append(encNames)
+					
+					return 0
+					}, encodingsPtr)
+			}
+			
+			return encodings
+		}
+		
+		/// Is `true` if the encoding conversion is trivial.
+		public var trivial: Bool {
+			var toRet = Int32(0)
+			iconvctl(intIconv, ICONV_TRIVIALP, &toRet)
+			return toRet == 1
+		}
+		
+		public var transliterates: Bool {
+			get {
+				var toRet = Int32(0)
+				iconvctl(intIconv, ICONV_GET_TRANSLITERATE, &toRet)
+				return toRet == 1
+			}
+			set {
+				var toRet: Int32
+				if newValue {
+					toRet = 1
+				} else {
+					toRet = 0
+				}
+				iconvctl(intIconv, ICONV_SET_TRANSLITERATE, &toRet)
+			}
+		}
+		
+		/// "illegal sequence discard and continue"
+		public var discardIllegalSequence: Bool {
+			get {
+				var toRet = Int32(0)
+				iconvctl(intIconv, ICONV_GET_DISCARD_ILSEQ, &toRet)
+				return toRet == 1
+			}
+			set {
+				var toRet:Int32
+				if newValue {
+					toRet = 1
+				} else {
+					toRet = 0
+				}
+				iconvctl(intIconv, ICONV_SET_DISCARD_ILSEQ, &toRet)
+			}
+		}
+		
+		/// Canonicalize an encoding name.
+		/// The result is either a canonical encoding name, or `name` itself.
+		public class func canonicalizeEncoding(name: String) -> String {
+			let retName = iconv_canonicalize(name)
+			return String.fromCString(retName) ?? name
+		}
+	}
+#endif
+
 extension IconV.EncodingErrors: Equatable {
 	
 }
@@ -265,7 +271,7 @@ extension IconV {
 	/// - parameter encName: the name of the encoding that the c string is in.
 	/// - throws: an `EncodingErrors` on failure.
 	///
-	/// Internally, this tells libiconv to convert the string to UTF-8, 
+	/// Internally, this tells libiconv to convert the string to UTF-32,
 	/// then initializes a Swift String from the result.
 	@warn_unused_result public class func convertCString(cstr: UnsafePointer<Int8>, length: Int? = nil, fromEncodingNamed encName: String) throws -> String {
 		if cstr == nil {

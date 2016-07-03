@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 @testable import SwiftIconV
 
-@objc class SamplerTests: XCTestCase {
+class SamplerTests: XCTestCase {
 	let bundle: NSBundle = NSBundle(forClass: SamplerTests.self)
 
     override func setUp() {
