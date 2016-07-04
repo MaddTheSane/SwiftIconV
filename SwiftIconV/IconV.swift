@@ -146,7 +146,6 @@ final public class IconV {
 }
 
 #if os(OSX) || os(iOS) || os(tvOS) || os(watchOS)
-	
 	/// OS X-specific additions that may not be present on Linux.
 	extension IconV {
 		private static var encodings = [[String]]()
@@ -156,10 +155,6 @@ final public class IconV {
 		@warn_unused_result
 		public static func availableEncodings() -> [[String]] {
 			if IconV.encodings.count == 0 {
-				let encodingsPtr = withUnsafeMutablePointer(&IconV.encodings, {
-					return $0
-				})
-				
 				iconvlist({ (namescount, names, data) -> Int32 in
 					var encNames = [String]()
 					encNames.reserveCapacity(Int(namescount))
@@ -173,7 +168,9 @@ final public class IconV {
 					encodings.memory.append(encNames)
 					
 					return 0
-					}, encodingsPtr)
+					}, withUnsafeMutablePointer(&IconV.encodings, {
+						return UnsafeMutablePointer<Void>($0)
+					}))
 			}
 			
 			return encodings
@@ -181,14 +178,14 @@ final public class IconV {
 		
 		/// Is `true` if the encoding conversion is trivial.
 		public var trivial: Bool {
-			var toRet = Int32(0)
+			var toRet: Int32 = 0
 			iconvctl(intIconv, ICONV_TRIVIALP, &toRet)
 			return toRet == 1
 		}
 		
 		public var transliterates: Bool {
 			get {
-				var toRet = Int32(0)
+				var toRet: Int32 = 0
 				iconvctl(intIconv, ICONV_GET_TRANSLITERATE, &toRet)
 				return toRet == 1
 			}
@@ -206,7 +203,7 @@ final public class IconV {
 		/// "illegal sequence discard and continue"
 		public var discardIllegalSequence: Bool {
 			get {
-				var toRet = Int32(0)
+				var toRet: Int32 = 0
 				iconvctl(intIconv, ICONV_GET_DISCARD_ILSEQ, &toRet)
 				return toRet == 1
 			}
@@ -219,6 +216,16 @@ final public class IconV {
 				}
 				iconvctl(intIconv, ICONV_SET_DISCARD_ILSEQ, &toRet)
 			}
+		}
+		
+		public func setHooks(hooks: iconv_hooks) {
+			var tmpHooks = hooks
+			iconvctl(intIconv, ICONV_SET_HOOKS, &tmpHooks)
+		}
+		
+		public func setFallbacks(fallbacks: iconv_fallbacks) {
+			var tmpHooks = fallbacks
+			iconvctl(intIconv, ICONV_SET_FALLBACKS, &tmpHooks)
 		}
 		
 		/// Canonicalize an encoding name.
@@ -237,11 +244,7 @@ extension IconV.EncodingErrors: Equatable {
 public func ==(lhs: IconV.EncodingErrors, rhs: IconV.EncodingErrors) -> Bool {
 	switch (lhs, rhs) {
 	case (.UnknownError(let lhsErr), .UnknownError(let rhsErr)):
-		if lhsErr == rhsErr {
-			return true
-		} else {
-			return false
-		}
+		return lhsErr == rhsErr
 		
 	case (.BufferTooSmall, .BufferTooSmall):
 		return true
@@ -286,7 +289,7 @@ extension IconV {
 		let strLen = length ?? Int(strlen(cstr))
 		var tmpStrLen = strLen
 		var utf8Str = [Int8]()
-		utf8Str.reserveCapacity(strLen)
+		utf8Str.reserveCapacity(strLen * 4)
 		var cStrPtr = UnsafeMutablePointer<Int8>(cstr)
 		try converter.convert(inBuffer: &cStrPtr, inBytesCount: &tmpStrLen, outBuffer: &utf8Str, outBufferMax: Int.max)
 		let preScalar: [UnicodeScalar] = {
