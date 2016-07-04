@@ -16,7 +16,7 @@ import Swift
 #endif
 
 /// Swift wrapper around the iconv library functions
-final public class IconV {
+final public class IconV: CustomStringConvertible {
 	private var intIconv: iconv_t
 	
 	/// The string encoding that `convert` converts to
@@ -142,6 +142,10 @@ final public class IconV {
 	/// Resets the encoder to its default state
 	public func reset() {
 		iconv(intIconv, nil, nil, nil, nil)
+	}
+	
+	public var description: String {
+		return "From encoding: \"\(fromEncoding)\", to encoding \"\(toEncoding)\""
 	}
 }
 
