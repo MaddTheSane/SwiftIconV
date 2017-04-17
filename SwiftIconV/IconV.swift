@@ -146,10 +146,10 @@ final public class IconV: CustomStringConvertible {
 	/// OS X-specific additions that may not be present on Linux.
 	extension IconV {
 		fileprivate static var encodings = [[String]]()
+		
 		/// A list of all the available encodings.
 		/// They are grouped so that names that reference the same encoding are in the same array
 		/// within the returned array.
-		
 		public static func availableEncodings() -> [[String]] {
 			if IconV.encodings.count == 0 {
 				iconvlist({ (namescount, names, data) -> Int32 in
