@@ -17,7 +17,7 @@ import Swift
 
 /// Swift wrapper around the iconv library functions
 final public class IconV: CustomStringConvertible {
-	private var intIconv: iconv_t
+	fileprivate var intIconv: iconv_t?
 	
 	/// The string encoding that `convert` converts to
 	public let toEncoding: String
@@ -25,19 +25,19 @@ final public class IconV: CustomStringConvertible {
 	/// The string encoding that `convert` converts from
 	public let fromEncoding: String
 	
-	public enum EncodingErrors: ErrorType {
+	public enum EncodingErrors: Error {
 		/// The buffer is too small
-		case BufferTooSmall
+		case bufferTooSmall
 		/// Conversion function was passed `nil`
-		case PassedNull
+		case passedNull
 		/// The encoding name isn't recognized by libiconv
-		case InvalidEncodingName
+		case invalidEncodingName
 		/// Unable to convert from one encoding to another
-		case InvalidMultibyteSequence
+		case invalidMultibyteSequence
 		/// Buffer ends between a multibyte sequence
-		case IncompleteMultibyteSequence
+		case incompleteMultibyteSequence
 		/// `errno` was an unknown value
-		case UnknownError(Int32)
+		case unknownError(Int32)
 	}
 	
 	/// Initialize an IconV class that can convert one encoding to another
@@ -80,9 +80,10 @@ final public class IconV: CustomStringConvertible {
 	/// Even if the function throws, the converted bytes are added to `outBuf`.
 	/// It is recommended to pass a copy of the pointer of the buffer and its length, as they are
 	/// incremented internally.
-	public func convert(inout inBuffer inBuf: UnsafeMutablePointer<CChar>, inout inBytesCount inBytes: Int, inout outBuffer outBuf: [CChar], outBufferMax: Int = 1024) throws -> Int {
+	@discardableResult
+	public func convert(inBuffer inBuf: inout UnsafeMutablePointer<CChar>?, inBytesCount inBytes: inout Int, outBuffer outBuf: inout [CChar], outBufferMax: Int = 1024) throws -> Int {
 		guard inBuf != nil && inBytes != 0 else {
-			throw EncodingErrors.PassedNull
+			throw EncodingErrors.passedNull
 		}
 		if outBufferMax == Int.max {
 			var icStatus = 0
@@ -91,7 +92,7 @@ final public class IconV: CustomStringConvertible {
 					icStatus += try convert(inBuffer: &inBuf, inBytesCount: &inBytes, outBuffer: &outBuf, outBufferMax: 2048)
 				} catch let error as EncodingErrors {
 					switch error {
-					case .BufferTooSmall:
+					case .bufferTooSmall:
 						continue
 						
 					default:
@@ -101,32 +102,34 @@ final public class IconV: CustomStringConvertible {
 			} while inBytes != 0
 			return icStatus
 		}
-		let tmpBuf = UnsafeMutablePointer<Int8>.alloc(outBufferMax)
+		let tmpBuf = UnsafeMutablePointer<Int8>.allocate(capacity: outBufferMax)
 		defer {
-			tmpBuf.dealloc(outBufferMax)
+			tmpBuf.deallocate(capacity: outBufferMax)
 		}
 		var tmpBufSize = outBufferMax
-		var passedBuf = tmpBuf
+		var passedBufPtr: UnsafeMutablePointer<Int8>? = tmpBuf
 		
-		let iconvStatus = iconv(intIconv, &inBuf, &inBytes, &passedBuf, &tmpBufSize)
+		//let iconvStatus = 0
+		let iconvStatus = iconv(intIconv, &inBuf, &inBytes, &passedBufPtr, &tmpBufSize)
+		
 		let toAppend = UnsafeMutableBufferPointer(start: tmpBuf, count: outBufferMax - tmpBufSize)
 
-		outBuf.appendContentsOf(toAppend)
+		outBuf.append(contentsOf: toAppend)
 		
 		//failed
 		if iconvStatus == -1 {
 			switch errno {
 			case EILSEQ:
-				throw EncodingErrors.InvalidMultibyteSequence
+				throw EncodingErrors.invalidMultibyteSequence
 				
 			case E2BIG:
-				throw EncodingErrors.BufferTooSmall
+				throw EncodingErrors.bufferTooSmall
 				
 			case EINVAL:
-				throw EncodingErrors.IncompleteMultibyteSequence
+				throw EncodingErrors.incompleteMultibyteSequence
 				
 			default:
-				throw EncodingErrors.UnknownError(errno)
+				throw EncodingErrors.unknownError(errno)
 			}
 		}
 		
@@ -152,28 +155,28 @@ final public class IconV: CustomStringConvertible {
 #if os(OSX) || os(iOS) || os(tvOS) || os(watchOS)
 	/// OS X-specific additions that may not be present on Linux.
 	extension IconV {
-		private static var encodings = [[String]]()
+		fileprivate static var encodings = [[String]]()
 		/// A list of all the available encodings.
 		/// They are grouped so that names that reference the same encoding are in the same array
 		/// within the returned array.
-		@warn_unused_result
+		
 		public static func availableEncodings() -> [[String]] {
 			if IconV.encodings.count == 0 {
 				iconvlist({ (namescount, names, data) -> Int32 in
 					var encNames = [String]()
 					encNames.reserveCapacity(Int(namescount))
 					for i in 0..<Int(namescount) {
-						guard let strName = String.fromCString(names[i]) else {
+						guard let strName = String(validatingUTF8: names![i]!) else {
 							return -1
 						}
 						encNames.append(strName)
 					}
-					let encodings = UnsafeMutablePointer<[[String]]>(data)
-					encodings.memory.append(encNames)
+					let encodings = data!.assumingMemoryBound(to: [[String]].self)
+					encodings.pointee.append(encNames)
 					
 					return 0
-					}, withUnsafeMutablePointer(&IconV.encodings, {
-						return UnsafeMutablePointer<Void>($0)
+					}, withUnsafeMutablePointer(to: &IconV.encodings, {
+						return UnsafeMutableRawPointer($0)
 					}))
 			}
 			
@@ -222,21 +225,23 @@ final public class IconV: CustomStringConvertible {
 			}
 		}
 		
-		public func setHooks(hooks: iconv_hooks) {
+		public func setHooks(_ hooks: iconv_hooks) {
 			var tmpHooks = hooks
 			iconvctl(intIconv, ICONV_SET_HOOKS, &tmpHooks)
 		}
 		
-		public func setFallbacks(fallbacks: iconv_fallbacks) {
+		public func setFallbacks(_ fallbacks: iconv_fallbacks) {
 			var tmpHooks = fallbacks
 			iconvctl(intIconv, ICONV_SET_FALLBACKS, &tmpHooks)
 		}
 		
 		/// Canonicalize an encoding name.
 		/// The result is either a canonical encoding name, or `name` itself.
-		public class func canonicalizeEncoding(name: String) -> String {
-			let retName = iconv_canonicalize(name)
-			return String.fromCString(retName) ?? name
+		public class func canonicalizeEncoding(_ name: String) -> String {
+			guard let retName = iconv_canonicalize(name) else {
+				return name
+			}
+			return String(cString: retName)
 		}
 	}
 #endif
@@ -247,22 +252,22 @@ extension IconV.EncodingErrors: Equatable {
 
 public func ==(lhs: IconV.EncodingErrors, rhs: IconV.EncodingErrors) -> Bool {
 	switch (lhs, rhs) {
-	case (.UnknownError(let lhsErr), .UnknownError(let rhsErr)):
+	case (.unknownError(let lhsErr), .unknownError(let rhsErr)):
 		return lhsErr == rhsErr
 		
-	case (.BufferTooSmall, .BufferTooSmall):
+	case (.bufferTooSmall, .bufferTooSmall):
 		return true
 		
-	case (.PassedNull, .PassedNull):
+	case (.passedNull, .passedNull):
 		return true
 
-	case (.InvalidEncodingName, .InvalidEncodingName):
+	case (.invalidEncodingName, .invalidEncodingName):
 		return true
 
-	case (.InvalidMultibyteSequence, .InvalidMultibyteSequence):
+	case (.invalidMultibyteSequence, .invalidMultibyteSequence):
 		return true
 
-	case (.IncompleteMultibyteSequence, .IncompleteMultibyteSequence):
+	case (.incompleteMultibyteSequence, .incompleteMultibyteSequence):
 		return true
 
 	default:
@@ -280,33 +285,35 @@ extension IconV {
 	///
 	/// Internally, this tells libiconv to convert the string to UTF-32,
 	/// then initializes a Swift String from the result.
-	@warn_unused_result public class func convertCString(cstr: UnsafePointer<Int8>, length: Int? = nil, fromEncodingNamed encName: String) throws -> String {
+	public class func convertCString(_ cstr: UnsafePointer<Int8>?, length: Int? = nil, fromEncodingNamed encName: String) throws -> String {
 		if cstr == nil {
-			throw EncodingErrors.PassedNull
+			throw EncodingErrors.passedNull
 		}
 		
 		//Use "UTF-32LE" so we don't have to worry about the BOM
 		guard let converter = IconV(fromEncoding: encName, toEncoding: "UTF-32LE") else {
-			throw EncodingErrors.InvalidEncodingName
+			throw EncodingErrors.invalidEncodingName
 		}
 		
 		let strLen = length ?? Int(strlen(cstr))
 		var tmpStrLen = strLen
 		var utf8Str = [Int8]()
 		utf8Str.reserveCapacity(strLen * 4)
-		var cStrPtr = UnsafeMutablePointer<Int8>(cstr)
+		var cStrPtr = UnsafeMutablePointer<Int8>(mutating: cstr)
 		try converter.convert(inBuffer: &cStrPtr, inBytesCount: &tmpStrLen, outBuffer: &utf8Str, outBufferMax: Int.max)
+		let str32Len = utf8Str.count
 		let preScalar: [UnicodeScalar] = {
 			// Nasty, dirty hack to convert to [UInt32]
-			let badPtr = UnsafeMutablePointer<Int8>(utf8Str)
-			let goodPtr = UnsafePointer<UInt32>(badPtr)
-			let betterPtr = UnsafeBufferPointer(start: goodPtr, count: utf8Str.count / 4)
-			
-			// Make sure the UTF-32 number is in the processor's endian.
-			return betterPtr.map({UnicodeScalar($0.littleEndian)})
+			let badPtr = UnsafeMutablePointer<Int8>(mutating: utf8Str)
+			return badPtr.withMemoryRebound(to: UInt32.self, capacity: str32Len / 4) { goodPtr in
+				let betterPtr = UnsafeBufferPointer(start: goodPtr, count: str32Len / 4)
+
+				// Make sure the UTF-32 number is in the processor's endian.
+				return betterPtr.map({UnicodeScalar($0.littleEndian)!})
+			}
 		}()
 		var scalar = String.UnicodeScalarView()
-		scalar.appendContentsOf(preScalar)
+		scalar.append(contentsOf: preScalar)
 		
 		return String(scalar)
 	}

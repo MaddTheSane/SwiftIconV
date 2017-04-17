@@ -27,7 +27,7 @@ class SwiftIconVTests: XCTestCase {
 		let eucEnc: [Int8] = [-89, -47, -95, -54, -95, -34, -89, -47, -91, -43, 0]
 		let sampJAStr = "а（±а\u{30D5}"
 
-		if let sjisStr = try? IconV.convertCString(sjisEnc, fromEncodingNamed: "SJIS"), eucStr = try? IconV.convertCString(eucEnc, fromEncodingNamed: "EUC-JP") {
+		if let sjisStr = try? IconV.convertCString(sjisEnc, fromEncodingNamed: "SJIS"), let eucStr = try? IconV.convertCString(eucEnc, fromEncodingNamed: "EUC-JP") {
 			XCTAssertEqual(sampJAStr, sjisStr)
 			XCTAssertEqual(sampJAStr, eucStr)
 			XCTAssertEqual(sjisStr, eucStr)
@@ -47,21 +47,21 @@ class SwiftIconVTests: XCTestCase {
 		var sjisStr: String? = nil
 		var eucStr: String? = nil
 		
-		if let sjisCStr = sampleJAStr.cStringUsingEncoding(NSShiftJISStringEncoding) {
+		if let sjisCStr = sampleJAStr.cString(using: String.Encoding.shiftJIS) {
 			do {
 				sjisStr = try IconV.convertCString(sjisCStr, fromEncodingNamed: "SJIS")
 				XCTAssertEqual(sampleJAStr, sjisStr)
 			} catch {
-				XCTAssert(false, String(error))
+				XCTAssert(false, String(describing: error))
 			}
 		}
 		
-		if let eucCStr = sampleJAStr.cStringUsingEncoding(NSJapaneseEUCStringEncoding) {
+		if let eucCStr = sampleJAStr.cString(using: String.Encoding.japaneseEUC) {
 			do {
 				eucStr = try IconV.convertCString(eucCStr, fromEncodingNamed: "EUC-JP")
 				XCTAssertEqual(sampleJAStr, eucStr)
 			} catch {
-				XCTAssert(false, String(error))
+				XCTAssert(false, String(describing: error))
 			}
 		}
 		
@@ -87,7 +87,7 @@ class SwiftIconVTests: XCTestCase {
 				let maybeInfinity = try IconV.convertCString(cStr, fromEncodingNamed: enc)
 				XCTAssertEqual(infinity, maybeInfinity)
 			} catch {
-				XCTAssert(false, String(error))
+				XCTAssert(false, String(describing: error))
 			}
 		}
 	}
@@ -102,7 +102,7 @@ class SwiftIconVTests: XCTestCase {
 			let maybeInfinity = try IconV.convertCString(macOSRoman, fromEncodingNamed: "ASCII")
 			XCTFail("Got \(maybeInfinity), expected throw")
 		} catch let error as IconV.EncodingErrors {
-			XCTAssertEqual(error, IconV.EncodingErrors.InvalidMultibyteSequence, "Got unexpected error \"\(error)\"")
+			XCTAssertEqual(error, IconV.EncodingErrors.invalidMultibyteSequence, "Got unexpected error \"\(error)\"")
 		} catch {
 			XCTFail("Got unknown error \"\(error)\"")
 		}
