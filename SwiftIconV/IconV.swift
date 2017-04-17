@@ -45,16 +45,8 @@ final public class IconV: CustomStringConvertible {
 	/// - parameter toEncoding: The name of the encoding to convert to. Default is `"UTF-8"`
 	/// - returns: an IconV class, or `nil` if an encoding name is invalid.
 	public init?(fromEncoding: String, toEncoding: String = "UTF-8") {
-		for char in fromEncoding.characters {
-			if char == " " {
-				return nil
-			}
-		}
-		
-		for char in toEncoding.characters {
-			if char == " " {
-				return nil
-			}
+		guard !fromEncoding.contains(" "), !toEncoding.contains(" ") else {
+			return nil
 		}
 		
 		self.fromEncoding = fromEncoding
@@ -108,8 +100,6 @@ final public class IconV: CustomStringConvertible {
 		}
 		var tmpBufSize = outBufferMax
 		var passedBufPtr: UnsafeMutablePointer<Int8>? = tmpBuf
-		
-		//let iconvStatus = 0
 		let iconvStatus = iconv(intIconv, &inBuf, &inBytes, &passedBufPtr, &tmpBufSize)
 		
 		let toAppend = UnsafeMutableBufferPointer(start: tmpBuf, count: outBufferMax - tmpBufSize)
@@ -280,7 +270,7 @@ extension IconV {
 	/// - parameter cstr: pointer to the C string to convert
 	/// - parameter length: the length, in bytes, of `cstr`. If `nil`, uses `strlen` to get the length.
 	/// Default value is `nil`.
-	/// - parameter encName: the name of the encoding that the c string is in.
+	/// - parameter encName: the name of the encoding that the C-string is in.
 	/// - throws: an `EncodingErrors` on failure.
 	///
 	/// Internally, this tells libiconv to convert the string to UTF-32,
@@ -301,15 +291,20 @@ extension IconV {
 		utf8Str.reserveCapacity(strLen * 4)
 		var cStrPtr = UnsafeMutablePointer<Int8>(mutating: cstr)
 		try converter.convert(inBuffer: &cStrPtr, inBytesCount: &tmpStrLen, outBuffer: &utf8Str, outBufferMax: Int.max)
-		let str32Len = utf8Str.count
-		let preScalar: [UnicodeScalar] = {
+		let str32Len = utf8Str.count / 4
+		let preScalar: [UnicodeScalar] = try {
 			// Nasty, dirty hack to convert to [UInt32]
 			let badPtr = UnsafeMutablePointer<Int8>(mutating: utf8Str)
-			return badPtr.withMemoryRebound(to: UInt32.self, capacity: str32Len / 4) { goodPtr in
-				let betterPtr = UnsafeBufferPointer(start: goodPtr, count: str32Len / 4)
+			return try badPtr.withMemoryRebound(to: UInt32.self, capacity: str32Len) { goodPtr in
+				let betterPtr = UnsafeBufferPointer(start: goodPtr, count: str32Len)
 
 				// Make sure the UTF-32 number is in the processor's endian.
-				return betterPtr.map({UnicodeScalar($0.littleEndian)!})
+				return try betterPtr.map({ prescale in
+					guard let scaler = UnicodeScalar(prescale.littleEndian) else {
+						throw EncodingErrors.invalidMultibyteSequence
+					}
+					return scaler
+				})
 			}
 		}()
 		var scalar = String.UnicodeScalarView()
