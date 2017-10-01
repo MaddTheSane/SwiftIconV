@@ -35,7 +35,9 @@ class SamplerTests: XCTestCase {
 		}
 		
 		do {
-			let transStr = try IconV.convertCString((data as NSData).bytes.bindMemory(to: Int8.self, capacity: data.count), length: data.count, fromEncodingNamed: "ISO8859-7")
+			let transStr = try data.withUnsafeBytes({ (aBytes: UnsafePointer<Int8>) -> String in
+				return try IconV.convertCString(aBytes, length: data.count, fromEncodingNamed: "ISO8859-7")
+			})
 			let nativeStr = "Τη γλώσσα μου έδωσαν ελληνική\nτο σπίτι φτωχικό στις αμμουδιές του Ομήρου.\nΜονάχη έγνοια η γλώσσα μου στις αμμουδιές του Ομήρου.\nαπό το Άξιον Εστί\nτου Οδυσσέα Ελύτη\n"
 			XCTAssertEqual(transStr, nativeStr)
 		} catch {
@@ -55,7 +57,9 @@ class SamplerTests: XCTestCase {
 		}
 		
 		do {
-			let transStr = try IconV.convertCString((data as NSData).bytes.bindMemory(to: Int8.self, capacity: data.count), length: data.count, fromEncodingNamed: "ISO8859-5")
+			let transStr = try data.withUnsafeBytes({ (aBytes: UnsafePointer<Int8>) -> String in
+				return try IconV.convertCString(aBytes, length: data.count, fromEncodingNamed: "ISO8859-5")
+			})
 			let nativeStr = "На берегу пустынных волн\nСтоял он, дум великих полн,\nИ вдаль глядел. Пред ним широко\nРека неслася; бедный чёлн\nПо ней стремился одиноко.\nПо мшистым, топким берегам\nЧернели избы здесь и там,\nПриют убогого чухонца;\nИ лес, неведомый лучам\nВ тумане спрятанного солнца,\nКругом шумел.\n"
 			XCTAssertEqual(transStr, nativeStr)
 		} catch {
@@ -75,7 +79,10 @@ class SamplerTests: XCTestCase {
 		}
 		
 		do {
-			let transStr = try IconV.convertCString((data as NSData).bytes.bindMemory(to: Int8.self, capacity: data.count), length: data.count, fromEncodingNamed: "SHIFT-JIS")
+			let transStr = try data.withUnsafeBytes({ (aBytes: UnsafePointer<Int8>) -> String in
+				return try IconV.convertCString(aBytes, length: data.count, fromEncodingNamed: "SHIFT-JIS")
+			})
+
 			let nativeStr = "いろはにほへど　ちりぬるを\nわがよたれぞ　つねならむ\nうゐのおくやま　けふこえて\nあさきゆめみじ　ゑひもせず\n"
 			XCTAssertEqual(transStr, nativeStr)
 		} catch {
@@ -95,7 +102,9 @@ class SamplerTests: XCTestCase {
 		}
 		
 		do {
-			let transStr = try IconV.convertCString((data as NSData).bytes.bindMemory(to: Int8.self, capacity: data.count), length: data.count, fromEncodingNamed: "LATIN1")
+			let transStr = try data.withUnsafeBytes({ (aBytes: UnsafePointer<Int8>) -> String in
+				return try IconV.convertCString(aBytes, length: data.count, fromEncodingNamed: "LATIN1")
+			})
 			let nativeStr = "Si\u{302}ne kla\u{302}wen durh die wolken sint geslagen,\ner sti\u{302}get u\u{302}f mit gro\u{302}zer kraft,\nich sih in gra\u{302}wen ta\u{308}geli\u{302}ch als er wil tagen,\nden tac, der im geselleschaft\nerwenden wil, dem werden man,\nden ich mit sorgen i\u{302}n verliez.\nich bringe in hinnen, ob ich kan.\nsi\u{302}n vil manegiu tugent michz leisten hiez.\n"
 			XCTAssertEqual(transStr, nativeStr)
 		} catch {
