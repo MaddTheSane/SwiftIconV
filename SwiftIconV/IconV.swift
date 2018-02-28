@@ -173,8 +173,13 @@ final public class IconV: CustomStringConvertible {
 			return encodings
 		}
 		
-		/// Is `true` if the encoding conversion is trivial.
+		@available(*, deprecated, renamed: "isTrivial")
 		public var trivial: Bool {
+			return isTrivial;
+		}
+		
+		/// Is `true` if the encoding conversion is trivial.
+		public var isTrivial: Bool {
 			var toRet: Int32 = 0
 			iconvctl(intIconv, ICONV_TRIVIALP, &toRet)
 			return toRet == 1
